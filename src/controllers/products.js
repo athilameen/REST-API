@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Product = require("../models/product");
 const Joi = require('joi')
 const joiValidate = require('../utils/joiValidate')
+const awsupload = require('../utils/awsupload')
 
 exports.allProducts = async (req, res) => {
 
@@ -58,11 +59,17 @@ exports.createProduct = async (req, res) => {
             return res.status(403).json({error});
         }
 
+        const uploadAWS = await awsupload(req.file);        
+
+        if(uploadAWS.success !== true){
+            return res.status(400).json({error: uploadAWS.message});
+        }   
+
         const product = new Product({
             _id: new mongoose.Types.ObjectId(),
             name: req.body.name,
             price: req.body.price,
-            image: req.file.path
+            image: uploadAWS?.url
         });
 
         const result = await product.save();
@@ -72,6 +79,7 @@ exports.createProduct = async (req, res) => {
                 _id: result._id,
                 name: result.name,
                 price: result.price,
+                image: result?.image
             }        
             res.status(201).success(response, 'The product has been successfully created.');
         } else {
@@ -87,6 +95,30 @@ exports.createProduct = async (req, res) => {
     }
 
 };
+
+exports.uploadProduct = async (req, res) => {
+
+    const file = req.file;    
+    if (!file) {
+        return res.status(400).send({ message: `Product Image couldn't be uploaded due to not meeting our criteria.`});
+    }
+
+    try{
+
+        const response = await awsupload(file);
+        
+        if(response.success){
+            res.status(201).send(response.message);
+        } else {
+            res.status(500).send(response.message);
+        }
+        
+    } catch(err){
+        console.log(err);
+        res.status(500).send('Failed to upload file.');
+    }
+    
+}
 
 exports.getProduct = async (req, res) => {
 
@@ -130,10 +162,16 @@ exports.updateProduct = async (req, res) => {
                 delete req.body.image;
             }
     
-            const { success: valid, message: error } = await joiValidate(schema, req.body);
+            const { success: valid, message: error } = await joiValidate(schema, req.body);            
     
             if (!valid){
                 return res.status(403).json({error});
+            }
+
+            const uploadAWS = await awsupload(req.file);
+
+            if(uploadAWS.success !== true){
+                return res.status(400).json({error: uploadAWS.message});
             }
 
             const productData = {
@@ -142,7 +180,7 @@ exports.updateProduct = async (req, res) => {
             }
 
             if(req?.file){
-                productData.image = req.file.path;
+                productData.image = uploadAWS?.url;
             }
 
             const result = await Product.updateOne(productData);

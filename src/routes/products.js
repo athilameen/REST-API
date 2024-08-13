@@ -1,10 +1,10 @@
 const express = require("express");
+const multer = require('multer');
 const router = express.Router();
-
 const checkAuth = require('../middleware/check-auth');
 const ProductsController = require('../controllers/products');
 
-const multer = require('multer');
+/*
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
     cb(null, './uploads');
@@ -15,6 +15,15 @@ const storage = multer.diskStorage({
   }
 });
 
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 1024 * 1024 * 5
+  },
+  fileFilter: fileFilter
+});
+*/
+
 const fileFilter = (req, file, cb) => {  
   // reject a file
   if (file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
@@ -24,22 +33,23 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({
-  storage: storage,
+const awsUpload = multer({ 
+  storage: multer.memoryStorage(),
   limits: {
-    fileSize: 1024 * 1024 * 5
+    fileSize: 1024 * 1024 * 2 //2MB
   },
   fileFilter: fileFilter
 });
 
-
 router.get("/", ProductsController.allProducts);
 
-router.post("/", checkAuth, upload.single('image'), ProductsController.createProduct);
+router.post("/", checkAuth, awsUpload.single('image'), ProductsController.createProduct);
+
+//router.post("/upload", checkAuth, awsUpload.single('image'), ProductsController.uploadProduct);
 
 router.get("/:productId", ProductsController.getProduct);
 
-router.patch("/:productId", checkAuth, upload.single('image'), ProductsController.updateProduct);
+router.patch("/:productId", checkAuth, awsUpload.single('image'), ProductsController.updateProduct);
 
 router.delete("/:productId", checkAuth, ProductsController.deleteProduct);
 

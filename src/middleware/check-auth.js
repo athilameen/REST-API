@@ -4,7 +4,11 @@ const {redisClient, redisKeys } = require('../connect/connectRedis');
 module.exports = async (req, res, next) => {
     try {
 
-        return res.status(200).json({ req: req, headers: req.headers, message: req.headers.authorization});
+        return res.status(200).json({ 
+            //req: req, 
+            myheaders: req.headers, 
+            mymessage: req.headers.authorization
+        });
 
         /*
         const token = (req.headers.authorization) ? req.headers.authorization.split(" ")[1] : "";   
@@ -46,7 +50,9 @@ module.exports = async (req, res, next) => {
         console.log(error);
         return res.status(401).json({
             message:  'Authentication failed.',
-            req: req, headers: req.headers, nmessage: req.headers.authorization
+             //req: req, 
+             myheaders: req.headers, 
+             mymessage: req.headers.authorization
         });
     }
 };

@@ -20,7 +20,7 @@ exports.userSignup = async (req, res) => {
         const { success: valid, message: error } = await joiValidate(schema, req.body);
 
         if (!valid){
-          return res.status(403).json({error});
+          return res.status(403).json({message : error});
         }
         
         const isUser = await User.find({ email: req.body.email }).exec();

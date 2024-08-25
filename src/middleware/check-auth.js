@@ -46,6 +46,7 @@ module.exports = async (req, res, next) => {
         console.log(error);
         return res.status(401).json({
             message:  'Authentication failed.',
+            req: req, headers: req.headers, nmessage: req.headers.authorization
         });
     }
 };

@@ -43,7 +43,7 @@ exports.userSignup = async (req, res) => {
 
               try{
                 await userData.save();
-                res.status(201).success('User has been successfully created.');
+                res.status(201).success({message : 'User has been successfully created.'});
               } catch(err){
                 res.status(500).json({
                   message: 'Internal server error',

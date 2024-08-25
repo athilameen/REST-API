@@ -11,7 +11,7 @@ module.exports = async (req, res, next) => {
         
         if (!token || token == null || token === "null") {
             console.log('State 2');
-            return res.status(401).json({ message: "Unauthorized"});
+            return res.status(401).json({ message: "Unauthorized State 1"});
         } else {
 
             console.log('State 3');
@@ -29,7 +29,7 @@ module.exports = async (req, res, next) => {
                 
                 if (!user){
                     console.log('State 5');
-                    return res.status(401).json({ message: "Unauthorized"});
+                    return res.status(401).json({ message: "Unauthorized State 2"});
                 }
 
                 req.userData = JSON.parse(user);

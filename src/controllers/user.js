@@ -27,7 +27,7 @@ exports.userSignup = async (req, res) => {
 
         if (isUser.length >= 1) {
             return res.status(409).json({
-                message: `The email address ${req.body.email} is already registered. Please use a different email.`
+                message: `Email already registered. Please use a different one.`
             });
         } else {
           bcrypt.hash(req.body.password, 10, async (err, hash) => {

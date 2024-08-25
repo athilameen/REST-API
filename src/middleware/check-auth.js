@@ -11,7 +11,7 @@ module.exports = async (req, res, next) => {
         
         if (!token || token == null || token === "null") {
             console.log('State 2');
-            return res.status(401).json({ message: "Unauthorized State 1"});
+            return res.status(401).json({ message: "Unauthorized State 1", token});
         } else {
 
             console.log('State 3');

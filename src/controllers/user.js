@@ -14,16 +14,7 @@ exports.userSignup = async (req, res) => {
 
         const schema = Joi.object({
           email: Joi.string().email().required().label("Email"),
-          //password: Joi.string().required().min(8).max(16).label("Password"),
-          password: Joi.string()
-          .min(8)  // Minimum length of 8 characters
-          .max(16) // Maximum length of 16 characters
-          .required() // Password is required
-          .messages({
-            'string.min': 'Password must be at least 8 characters long',
-            'string.max': 'Password length must be less than or equal to 16 characters long',
-            'any.required': 'Password is required',
-          }),        
+          password: Joi.string().required().min(8).label("Password"),        
         });
 
         const { success: valid, message: error } = await joiValidate(schema, req.body);

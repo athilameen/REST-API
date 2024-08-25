@@ -31,7 +31,7 @@ module.exports = async (req, res, next) => {
        
     } catch (error) {
         return res.status(401).json({
-            message: error || 'Authentication failed'
+            message: (Object.keys(error.response.data.message).length === 0) ?  'Authentication failed.' : error.response.data.message,
         });
     }
 };

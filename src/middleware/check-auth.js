@@ -3,8 +3,9 @@ const {redisClient, redisKeys } = require('../connect/connectRedis');
 
 module.exports = async (req, res, next) => {
     try {
-        const token = req.headers.authorization.split(" ")[1];        
 
+        const token = (req.headers.authorization) ? req.headers.authorization.split(" ")[1] : "";   
+        
         if (!token || token == null || token === "null") {
             return res.status(401).json({ message: "Unauthorized"});
         } else {
@@ -30,8 +31,9 @@ module.exports = async (req, res, next) => {
         }
        
     } catch (error) {
+        console.log(error);
         return res.status(401).json({
-            message: (Object.keys(error.response.data.message).length === 0) ?  'Authentication failed.' : error.response.data.message,
+            message:  'Authentication failed.',
         });
     }
 };

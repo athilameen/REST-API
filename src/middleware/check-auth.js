@@ -20,7 +20,7 @@ module.exports = async (req, res, next) => {
                 const user = await redisClient.get(`${redisKeys.USER_STATE}:${sessionId}`);
                 
                 if (!user){
-                    return res.status(401).json({ message: "Unauthorized redis"});
+                    return res.status(401).json({ message: "Unauthorized redis info"});
                 }
 
                 req.userData = JSON.parse(user);

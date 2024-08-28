@@ -126,10 +126,10 @@ exports.userLogin = async (req, res) => {
       }
 
       //const expiresIn = 60 * 60 * 24 * 30; // 30 days
-      //const expiresIn = process.env.JWT_REFRESH_TOKEN_EXPIRES_IN;
-      const expiresIn = 10; // 2 min
+      const refreshExpiredIn = process.env.JWT_REFRESH_TOKEN_EXPIRES_IN;
+      const expiresIn = (refreshExpiredIn + 60 ); // 60 sec extra
       await redisClient.set(`${redisKeys.USER_STATE}:${sessionId}`, JSON.stringify(userInfo), { EX: expiresIn });
-      return res.success(userData, 'Login Success');
+      return res.success(userData, 'Login Success '+expiresIn);
 
   } catch(err){        
       res.status(500).json({

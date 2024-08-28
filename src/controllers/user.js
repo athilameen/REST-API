@@ -194,6 +194,7 @@ exports.refreshToken = async (req, res) => {
       return res.status(200).json({ message: 'In valid'});
     }
 
+    /*
     jwt.verify(req.body.refreshToken, process.env.JWT_SECRET, async (err, verifyTokenRes) => {
 
       if(err){
@@ -203,9 +204,6 @@ exports.refreshToken = async (req, res) => {
 
       if (verifyTokenRes) {
 
-        
-        return res.status(200).json({ message: 'Token verification got it.'});
-        /*
         const accessToken = jwt.sign(
           {
             sessionId: verifyTokenRes.sessionId,
@@ -218,10 +216,11 @@ exports.refreshToken = async (req, res) => {
           }
         );
         return res.success({accessToken}, 'Token refreshed successfully');
-        */
+        
       }
 
     });
+    */
     
   } catch(err){
       res.status(500).json({

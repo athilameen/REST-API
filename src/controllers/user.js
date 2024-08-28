@@ -188,13 +188,17 @@ exports.refreshToken = async (req, res) => {
     const { success: valid, message: error } = await joiValidate(schema, req.body);
 
     if (!valid){
-      return res.status(403).json({error});
+      //return res.status(403).json({error});
+      console.log(error);
+      
+      return res.status(200).json({ message: 'In valid'});
     }
 
     jwt.verify(req.body.refreshToken, process.env.JWT_SECRET, async (err, verifyTokenRes) => {
 
       if(err){
-        return res.status(400).json({ message: 'Token verification failed.'});
+        //return res.status(400).json({ message: 'Token verification failed.'});
+        return res.status(200).json({ message: 'Token verification failed.'});
       }
 
       if (verifyTokenRes) {

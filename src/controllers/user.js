@@ -13,6 +13,9 @@ exports.userSignup = async (req, res) => {
     try{
 
         const schema = Joi.object({
+          firstName: Joi.string().required().label("First Name"),
+          lastName: Joi.string().required().label("Last Name"),
+          mobileNumber: Joi.string().required().label("Mobile Number"),
           email: Joi.string().email().required().label("Email"),
           password: Joi.string().required().min(8).label("Password"),        
         });
@@ -23,13 +26,16 @@ exports.userSignup = async (req, res) => {
           return res.status(403).json({message : error});
         }
         
-        const isUser = await User.find({ email: req.body.email }).exec();
+        // Check if the email or mobile number already exists
+        const existingUser = await User.findOne({
+          $or: [{ email: req.body.email }, { mobileNumber: req.body.mobileNumber }],
+        });
 
-        if (isUser.length >= 1) {
-            return res.status(409).json({
-                message: `Email already registered. Please use a different one.`
-            });
-        } else {
+        if (existingUser) {
+          return res.status(409).json({ 
+            message: 'Email or Mobile number already exists' 
+          });
+        }  else {
           bcrypt.hash(req.body.password, 10, async (err, hash) => {
            if (err) {
               return res.status(500).json({error: err});
@@ -37,6 +43,9 @@ exports.userSignup = async (req, res) => {
 
               const userData = new User({
                 _id: new mongoose.Types.ObjectId(),
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                mobileNumber: req.body.mobileNumber,
                 email: req.body.email,
                 password: hash
               });
@@ -55,7 +64,7 @@ exports.userSignup = async (req, res) => {
           });
         }
         
-    } catch(err){        
+    } catch(err){                
         res.status(500).json({
           message: 'Internal server error',
           error: err || 'Something Wrong!'
@@ -99,6 +108,9 @@ exports.userLogin = async (req, res) => {
         
       const userInfo = {
         sessionId,
+        firstName: user[0].firstName,
+        lastName: user[0].lastName,
+        mobileNumber: user[0].mobileNumber,
         email: user[0].email,
         userId: user[0]._id
       }      

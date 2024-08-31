@@ -288,7 +288,7 @@ exports.forgotPassword = async (req, res) => {
 
     const token = crypto.randomBytes(20).toString('hex');
     user.resetPasswordToken = token;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    user.resetPasswordExpires = Date.now() + process.env.RESET_PASSWORD_EXPIRES_IN; // 1 hour
     await user.save();
   
     const transporter = nodemailer.createTransport({
@@ -305,7 +305,7 @@ exports.forgotPassword = async (req, res) => {
       subject: 'Password Reset',
       text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
              Please click on the following link, or paste this into your browser to complete the process:\n\n
-             ${process.env.SITE_URL}/user/reset-password/${token}\n\n
+             ${process.env.APP_URL}/../ResetPassword/${token}\n\n
              If you did not request this, please ignore this email and your password will remain unchanged.\n`,
     };
 

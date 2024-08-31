@@ -53,7 +53,7 @@ exports.userSignup = async (req, res) => {
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
                 countryCode: req.body.countryCode,
-                mobileINumber: req.body.mobileNumber,
+                mobileINumber: req.body.mobileINumber,
                 mobileNumber: req.body.mobileNumber,
                 email: req.body.email,
                 password: hash

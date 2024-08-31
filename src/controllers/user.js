@@ -45,6 +45,7 @@ exports.userSignup = async (req, res) => {
                 _id: new mongoose.Types.ObjectId(),
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
+                countryCode: req.body.countryCode,
                 mobileNumber: req.body.mobileNumber,
                 email: req.body.email,
                 password: hash
@@ -110,6 +111,7 @@ exports.userLogin = async (req, res) => {
         sessionId,
         firstName: user[0].firstName,
         lastName: user[0].lastName,
+        countryCode: user[0].countryCode,
         mobileNumber: user[0].mobileNumber,
         email: user[0].email,
         userId: user[0]._id

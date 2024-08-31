@@ -10,6 +10,9 @@ const userSchema = mongoose.Schema({
         type: String, 
         required: true, 
     },
+    countryCode: {
+        type: String,
+    },
     mobileNumber: {
         type: String, 
         required: true,

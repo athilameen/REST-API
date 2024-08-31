@@ -15,6 +15,7 @@ exports.userSignup = async (req, res) => {
         const schema = Joi.object({
           firstName: Joi.string().required().label("First Name"),
           lastName: Joi.string().required().label("Last Name"),
+          countryCode: Joi.string().label("Country Code"),
           mobileNumber: Joi.string().required().label("Mobile Number"),
           email: Joi.string().email().required().label("Email"),
           password: Joi.string().required().min(8).label("Password"),        
@@ -25,6 +26,9 @@ exports.userSignup = async (req, res) => {
         if (!valid){
           return res.status(403).json({message : error});
         }
+
+        
+        
         
         // Check if the email or mobile number already exists
         const existingUser = await User.findOne({

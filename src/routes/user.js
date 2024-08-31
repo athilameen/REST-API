@@ -12,6 +12,10 @@ router.post("/token", UserController.refreshToken);
 
 router.post("/logout", checkAuth, UserController.logoutUser);
 
+router.post("/forgot-password", UserController.forgotPassword);
+
+router.post("/reset-password/:token", UserController.resetPassword);
+
 router.delete("/delete/:userId", checkAuth, UserController.userDelete);
 
 module.exports = router;

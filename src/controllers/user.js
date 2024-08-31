@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Joi = require('joi')
@@ -6,7 +8,7 @@ const { generateToken } = require('../utils/common');
 const joiValidate = require('../utils/joiValidate')
 
 const User = require("../models/user");
-const {redisClient, redisKeys } = require('../connect/connectRedis')
+const {redisClient, redisKeys } = require('../connect/connectRedis');
 
 const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -269,5 +271,115 @@ exports.refreshToken = async (req, res) => {
         error: err || 'Something Wrong!'
       });
   }
+
+}
+
+exports.forgotPassword = async (req, res) => {
+
+  const { email } = req.body;
+
+  try{
+
+    const user = await User.findOne({ email });    
+
+    if (!user) {
+      return res.status(400).send({ message: 'User with given email does not exist'});
+    }
+
+    const token = crypto.randomBytes(20).toString('hex');
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+  
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: process.env.GMAIL_ID,
+        pass: process.env.GMAIL_PASS,
+      },
+    });    
+    
+    const mailOptions = {
+      to: user.email,
+      from: process.env.MAIL_FROM,
+      subject: 'Password Reset',
+      text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
+             Please click on the following link, or paste this into your browser to complete the process:\n\n
+             ${process.env.SITE_URL}/user/reset-password/${token}\n\n
+             If you did not request this, please ignore this email and your password will remain unchanged.\n`,
+    };
+
+    transporter.sendMail(mailOptions, (err) => {
+      if (err) {
+        console.error('There was an error sending the email', err);
+        return res.status(500).json({
+          message: 'Error sending email',
+          error: err || 'Something Wrong!'
+        });
+      }
+      res.success({message: 'Recovery email sent'});
+    });
+    
+  } catch(err){
+      res.status(500).json({
+        message: 'Internal server error',
+        error: err || 'Something Wrong!'
+      });
+  }
+
+}
+
+exports.resetPassword = async (req, res) => {
+
+  try {
+
+    const schema = Joi.object({
+      password: Joi.string().required().min(8).label("Password"),        
+    });
+
+    const { success: valid, message: error } = await joiValidate(schema, req.body);
+
+    if (!valid){
+      return res.status(403).json({message : error});
+    }
+
+    const user = await User.findOne({
+      resetPasswordToken: req.params.token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).send({ message: 'Password reset token is invalid or has expired'});
+    } else {
+
+      bcrypt.hash(req.body.password, 10, async (err, hash) => {
+        if (err) {
+           return res.status(500).json({error: err});
+         } else {
+
+           try{
+              user.password = hash;
+              user.resetPasswordToken = undefined;
+              user.resetPasswordExpires = undefined;
+              await user.save();
+              res.success({message: 'Password has been updated'});
+           } catch(err){
+             res.status(500).json({
+               message: 'Internal server error',
+               error: err || 'Something Wrong!'
+             });
+           }
+               
+        }
+      });
+
+    }
+
+  } catch(err){
+    res.status(500).json({
+      message: 'Internal server error',
+      error: err || 'Something Wrong!'
+  });
+}
 
 }

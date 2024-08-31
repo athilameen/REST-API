@@ -13,10 +13,14 @@ const userSchema = mongoose.Schema({
     countryCode: {
         type: String,
     },
-    mobileNumber: {
+    mobileINumber: {
         type: String, 
         required: true,
         unique: true,
+    },
+    mobileNumber: {
+        type: String, 
+        required: true,
     },
     email: { 
         type: String, 

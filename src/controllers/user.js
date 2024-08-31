@@ -8,6 +8,11 @@ const joiValidate = require('../utils/joiValidate')
 const User = require("../models/user");
 const {redisClient, redisKeys } = require('../connect/connectRedis')
 
+const validateEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 exports.userSignup = async (req, res) => {
 
     try{
@@ -16,6 +21,7 @@ exports.userSignup = async (req, res) => {
           firstName: Joi.string().required().label("First Name"),
           lastName: Joi.string().required().label("Last Name"),
           countryCode: Joi.string().label("Country Code"),
+          mobileINumber: Joi.string().required().label("Mobile Number"),
           mobileNumber: Joi.string().required().label("Mobile Number"),
           email: Joi.string().email().required().label("Email"),
           password: Joi.string().required().min(8).label("Password"),        
@@ -26,13 +32,10 @@ exports.userSignup = async (req, res) => {
         if (!valid){
           return res.status(403).json({message : error});
         }
-
-        
-        
         
         // Check if the email or mobile number already exists
         const existingUser = await User.findOne({
-          $or: [{ email: req.body.email }, { mobileNumber: req.body.mobileNumber }],
+          $or: [{ email: req.body.email }, { mobileINumber: req.body.mobileINumber }],
         });
 
         if (existingUser) {
@@ -50,6 +53,7 @@ exports.userSignup = async (req, res) => {
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
                 countryCode: req.body.countryCode,
+                mobileINumber: req.body.mobileNumber,
                 mobileNumber: req.body.mobileNumber,
                 email: req.body.email,
                 password: hash
@@ -79,29 +83,53 @@ exports.userSignup = async (req, res) => {
 };
 
 exports.userLogin = async (req, res) => {
-
+  
   try{
 
-      const schema = Joi.object({
-        email: Joi.string().email().required().label("Email"),
-        password: Joi.string().required().label("Password"),            
-      });
+      let schema;
+      if (validateEmail(req.body.identifier)) {
+        req.body.email = req.body.identifier;
+        schema = Joi.object({
+          email: Joi.string().email().required().label("Email"),
+          password: Joi.string().required().label("Password"),            
+        });
+      } else {
+        req.body.mobileNumber = req.body.identifier;
+        schema = Joi.object({
+          mobileNumber: Joi.string().required().label("Mobile Number"),
+          password: Joi.string().required().label("Password"),            
+        });
+      }
 
+      delete req.body.identifier;
+      
       const { success: valid, message: error } = await joiValidate(schema, req.body);
 
       if (!valid){
         return res.status(403).json({error});
       }
       
-      const user = await User.find({ email: req.body.email }).exec();
+      let user;
+      if(req.body?.mobileNumber){
+        user = await User.findOne({
+          $or: [{ mobileINumber: req.body.mobileNumber }, { mobileNumber: req.body.mobileNumber }],
+        });
 
-      if (user.length < 1) {
+        if(!user){
+          const alterNumber = "+"+req.body.mobileNumber;
+          user = await User.findOne({ mobileINumber: alterNumber }).exec();
+        }
+      } else {
+        user = await User.findOne({ email: req.body.email }).exec();
+      }
+          
+      if (!user) {
         return res.status(401).json({
           message: "Authentication failed. Please check your credentials and try again."
         });
       }
 
-      const loginError = await bcrypt.compare(req.body.password, user[0].password);
+      const loginError = await bcrypt.compare(req.body.password, user.password);
 
       if(!loginError){
         return res.status(401).json({
@@ -113,12 +141,13 @@ exports.userLogin = async (req, res) => {
         
       const userInfo = {
         sessionId,
-        firstName: user[0].firstName,
-        lastName: user[0].lastName,
-        countryCode: user[0].countryCode,
-        mobileNumber: user[0].mobileNumber,
-        email: user[0].email,
-        userId: user[0]._id
+        firstName: user.firstName,
+        lastName: user.lastName,
+        countryCode: user.countryCode,
+        mobileINumber: user.mobileINumber,
+        mobileNumber: user.mobileNumber,
+        email: user.email,
+        userId: user._id
       }      
 
       const accessToken = jwt.sign(
@@ -146,7 +175,7 @@ exports.userLogin = async (req, res) => {
       const expiresIn = process.env.REDIS_EXPIRES_IN; // 60 sec extra of Refresh token time
       await redisClient.set(`${redisKeys.USER_STATE}:${sessionId}`, JSON.stringify(userInfo), { EX: expiresIn });
       return res.success(userData, 'Login Success');
-
+      
   } catch(err){        
       res.status(500).json({
         message: 'Internal server error',

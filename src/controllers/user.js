@@ -274,6 +274,52 @@ exports.refreshToken = async (req, res) => {
 
 }
 
+exports.changePassword  = async (req, res) => {
+
+  try {
+
+    const { currentPassword, newPassword } = req.body;
+   
+    const userID = req?.userData?.userId;
+    const userData = await User.findById(userID);    
+    if (!userData) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify old password
+    const isMatch = await bcrypt.compare(currentPassword, userData.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Incorrect old password' });
+    }
+
+    bcrypt.hash(newPassword, 10, async (err, hash) => {
+      if (err) {
+         return res.status(500).json({error: err});
+       } else {
+
+        try{
+          userData.password = hash;
+          await userData.save();
+          res.success({message : 'Password changed successfully', success: true});
+        } catch(err){
+          res.status(500).json({
+            message: 'Internal server error',
+            error: err || 'Something Wrong!'
+          });
+        }
+             
+      }
+    });
+
+  } catch(err){
+    res.status(500).json({
+      message: 'Internal server error',
+      error: err || 'Something Wrong!'
+  });
+
+}
+}
+
 exports.forgotPassword = async (req, res) => {
 
   const { email } = req.body;

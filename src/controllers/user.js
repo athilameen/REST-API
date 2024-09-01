@@ -193,6 +193,47 @@ exports.logoutUser = async (req, res) => {
   return res.success({success: true}, 'User logged out successfully');
 };
 
+exports.updateProfile = async(req, res) => {
+
+  try {
+
+    const schema = Joi.object({
+      firstName: Joi.string().required().label("First Name"),
+      lastName: Joi.string().required().label("Last Name"),
+      countryCode: Joi.string().label("Country Code"),
+      mobileINumber: Joi.string().required().label("Mobile Number"),
+      mobileNumber: Joi.string().required().label("Mobile Number"),  
+    });
+
+    const { success: valid, message: error } = await joiValidate(schema, req.body);
+
+    if (!valid){
+      return res.status(403).json({message : error});
+    }
+   
+    const userID = req?.userData?.userId;
+    const userData = await User.findById(userID);    
+    if (!userData) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    userData.firstName = req.body.firstName,
+    userData.lastName = req.body.lastName,
+    userData.countryCode = req.body.countryCode,
+    userData.mobileINumber = req.body.mobileINumber,
+    userData.mobileNumber = req.body.mobileNumber,
+    await userData.save();
+    res.success({message : 'Profile updated successfully', success: true});
+    
+  } catch(err){
+    res.status(500).json({
+      message: 'Internal server error',
+      error: err || 'Something Wrong!'
+    });
+  }
+
+}
+
 exports.userDelete = async (req, res) => {
 
   try{
@@ -315,9 +356,9 @@ exports.changePassword  = async (req, res) => {
     res.status(500).json({
       message: 'Internal server error',
       error: err || 'Something Wrong!'
-  });
+    });
+  }
 
-}
 }
 
 exports.forgotPassword = async (req, res) => {

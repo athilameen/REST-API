@@ -1,7 +1,8 @@
-const express = require('express')
-const route = require('./route')
 const dotenv = require('dotenv')
 dotenv.config();
+
+const express = require('express')
+const route = require('./route')
 
 const responseMiddleware = require('./middleware/responseMiddleware');
 const connectDatabase = require('./connect/connectDatabase');

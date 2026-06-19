@@ -333,9 +333,9 @@ Create a product with an image. Requires auth. **`multipart/form-data`.**
 | ------- | ------ | -------- | ---------------------------------------- |
 | `name`  | string | yes      |                                          |
 | `price` | number | yes      |                                          |
-| `image` | file   | yes      | jpg/jpeg/png, max 2 MB → uploaded to S3  |
+| `image` | file   | no       | Optional. jpg/jpeg/png, max 2 MB → uploaded to S3 |
 
-**Responses** — `201` created · `400` image missing/invalid or upload failed · `403` validation error
+**Responses** — `201` created · `400` image upload failed · `403` validation error
 
 ---
 

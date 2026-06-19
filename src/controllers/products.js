@@ -43,14 +43,10 @@ exports.allProducts = async (req, res) => {
 exports.createProduct = async (req, res) => {
 
     try{
-        
-        if (!req.file) {
-            return res.status(400).send({ message: `Product Image couldn't be uploaded due to not meeting our criteria.`});
-        }
 
         const schema = Joi.object({
             name: Joi.string().required().label("Product Name"),
-            price: Joi.number().required().label("Price"),            
+            price: Joi.number().required().label("Price"),
         });
 
         const { success: valid, message: error } = await joiValidate(schema, req.body);
@@ -59,18 +55,24 @@ exports.createProduct = async (req, res) => {
             return res.status(403).json({error});
         }
 
-        const uploadAWS = await awsupload(req.file);        
-
-        if(uploadAWS.success !== true){
-            return res.status(400).json({error: uploadAWS.message});
-        }   
-
-        const product = new Product({
+        const productData = {
             _id: new mongoose.Types.ObjectId(),
             name: req.body.name,
             price: req.body.price,
-            image: uploadAWS?.url
-        });
+        };
+
+        // Image is optional — only upload to S3 when a file is provided
+        if (req.file) {
+            const uploadAWS = await awsupload(req.file);
+
+            if(uploadAWS.success !== true){
+                return res.status(400).json({error: uploadAWS.message});
+            }
+
+            productData.image = uploadAWS?.url;
+        }
+
+        const product = new Product(productData);
 
         const result = await product.save();
 

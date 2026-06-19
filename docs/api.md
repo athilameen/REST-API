@@ -37,7 +37,7 @@ All endpoints are mounted under the base path **`/api`**.
 | Method | Endpoint | Auth | Description |
 | ------ | -------- | ---- | ----------- |
 | GET | `/api/products` | — | List all products |
-| POST | `/api/products` | 🔒 | Create a product (`multipart/form-data`: `name`, `price`, `image`) |
+| POST | `/api/products` | 🔒 | Create a product (`multipart/form-data`: `name`, `price`; `image` optional) |
 | GET | `/api/products/:productId` | — | Get a single product |
 | PATCH | `/api/products/:productId` | 🔒 | Update a product (`multipart/form-data`; `image` optional) |
 | DELETE | `/api/products/:productId` | 🔒 | Delete a product |

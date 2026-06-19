@@ -10,7 +10,7 @@ router.get("/", checkAuth, OrdersController.orderList);
 router.post("/", checkAuth, OrdersController.createOrder);
 
 // TEMP: auth removed for testing — make this endpoint public. Restore checkAuth when done.
-router.get("/:orderId", OrdersController.getOrder);
+router.get("/:orderId", checkAuth, OrdersController.getOrder);
 
 router.delete("/:orderId", checkAuth, OrdersController.deleteOrder);
 
